@@ -111,3 +111,21 @@ export async function finishRental(req, res) {
     return res.status(500).send("Erro interno");
   }
 }
+
+export async function deleteRental(req, res) {
+  const { id } = req.params;
+  try {
+    const rentalObj = await db.query("SELECT * FROM rentals WHERE id = $1", [
+      id,
+    ]);
+    if (rentalObj.rowCount < 1) return res.status(404).send("Não encontrado");
+    if (!rentalObj.rows[0].returnDate)
+      return res.status(400).send("Não finalizado");
+
+    await db.query("DELETE FROM rentals WHERE id = $1", [id]);
+    return res.status(200).send("Apagado com sucesso");
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).send("Erro interno");
+  }
+}
