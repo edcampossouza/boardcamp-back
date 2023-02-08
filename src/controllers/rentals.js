@@ -28,6 +28,7 @@ export async function getRentals(_, res) {
     return res.status(500).send("Erro interno");
   }
 }
+
 export async function postRental(req, res) {
   const { customerId, gameId, daysRented } = req.body;
   try {
@@ -63,6 +64,48 @@ export async function postRental(req, res) {
       ]
     );
     return res.sendStatus(201);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).send("Erro interno");
+  }
+}
+
+export async function finishRental(req, res) {
+  const { id } = req.params;
+  try {
+    const rentalObj = await db.query("SELECT * FROM rentals WHERE id = $1 ", [
+      id,
+    ]);
+    if (rentalObj.rowCount < 1) return res.status(404).send("Não encontrado");
+    const rental = rentalObj.rows[0];
+    if (rental.returnDate) return res.status(400).send("Já finalizado");
+    const rentalDate = new Date(rental.rentDate);
+    const dueDate = new Date(
+      rentalDate.getTime() + rental.daysRented * 1000 * 60 * 60 * 24
+    );
+    const today = new Date();
+    today.setTime(today.setHours(0, 0, 0, 0));
+
+    const timeDiff = today.getTime() - dueDate.getTime();
+    const daysDiff =
+      timeDiff > 0 ? Math.floor(timeDiff / (1000 * 60 * 60 * 24)) : 0;
+
+    const feePerDay = Math.floor(rental.originalPrice / rental.daysRented);
+    const delayFee = daysDiff ? daysDiff * feePerDay : null;
+
+    await db.query(
+      `
+      UPDATE rentals
+      SET 
+        "returnDate" = Now(),
+        "delayFee" = $1
+      WHERE 
+        id = $2
+    `,
+      [delayFee, id]
+    );
+
+    return res.status(200).send("OK");
   } catch (error) {
     console.log(error.message);
     return res.status(500).send("Erro interno");
