@@ -23,7 +23,7 @@ export async function postGame(req, res) {
       return res.status(409).send("Jogo já existe");
 
     // insere
-    db.query(
+    await db.query(
       'INSERT INTO games("name", "image", "stockTotal", "pricePerDay") VALUES ($1, $2, $3, $4)',
       [name, image, stockTotal, pricePerDay]
     );

@@ -5,9 +5,26 @@ export async function getCustomer(_, res) {
     const customers = await db.query("SELECT * FROM customers");
     return res.status(200).send(customers.rows);
   } catch (error) {
+    console.log(error.message);
     return res.status(500).send("Erro interno");
   }
 }
+
+export async function getCustomerByID(req, res) {
+  const { id } = req.params;
+  try {
+    const customer = await db.query("SELECT * FROM customers WHERE id = $1", [
+      id,
+    ]);
+    if (customer.rowCount < 1)
+      return res.status(404).send("Cliente não encontrado");
+    return res.status(200).send(customer.rows[0]);
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).send("Erro interno");
+  }
+}
+
 export async function postCustomer(req, res) {
   const customer = req.body;
   const { name, phone, cpf, birthday } = customer;
