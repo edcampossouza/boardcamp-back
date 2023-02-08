@@ -49,3 +49,26 @@ export async function postCustomer(req, res) {
     return res.status(500).send("Erro interno");
   }
 }
+
+export async function putCustomer(req, res) {
+  const { id } = req.params;
+  const customer = req.body;
+  const { name, phone, cpf, birthday } = customer;
+  try {
+    const cpfExists = await db.query(
+      "SELECT cpf FROM customers where cpf = $1 AND id <> $2 ",
+      [cpf, id]
+    );
+    if (cpfExists.rowCount !== 0)
+      return res.status(409).send("CPF já cadastrado");
+
+    await db.query(
+      'UPDATE "customers" SET "name" = $1, "phone" = $2, "cpf" = $3, "birthday" = $4 WHERE id = $5',
+      [name, phone, cpf, birthday, id]
+    );
+    return res.status(200).send("OK");
+  } catch (error) {
+    console.log(error.message);
+    return res.status(500).send("Erro interno");
+  }
+}
