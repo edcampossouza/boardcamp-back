@@ -8,7 +8,7 @@ export async function getRentals(_, res) {
     FROM rentals join customers on customers.id = rentals."customerId"
     join games on games.id = rentals."gameId"
     `);
-    const rentalsObj = rentals.rows.map((r) => {
+    rentals.rows.forEach((r) => {
       const rental = r;
       rental.customer = {
         id: rental.customerId,
