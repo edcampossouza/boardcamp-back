@@ -2,10 +2,21 @@ import { db } from "../config/database.js";
 
 export async function getCustomer(req, res) {
   const { cpf } = req.query;
-  const query = cpf
+  const { offset, limit } = req.query;
+  let queryIndex = 1;
+  let query = cpf
     ? "SELECT * FROM customers WHERE cpf like $1"
     : "SELECT * FROM customers";
   const values = cpf ? [`${cpf}%`] : [];
+  if (cpf) queryIndex++;
+  if (offset) {
+    query += ` OFFSET $${queryIndex++} `;
+    values.push(offset);
+  }
+  if (limit) {
+    query += ` LIMIT $${queryIndex++} `;
+    values.push(limit);
+  }
   try {
     const customers = await db.query(query, values);
     return res.status(200).send(customers.rows);
