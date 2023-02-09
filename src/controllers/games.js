@@ -1,8 +1,13 @@
 import { db } from "../config/database.js";
 
-export async function getGames(_, res) {
+export async function getGames(req, res) {
+  const { name } = req.query;
+  const query = name
+    ? "SELECT * FROM games where LOWER(name) like LOWER($1)"
+    : "SELECT * FROM games";
+  const values = name ? [`${name}%`] : [];
   try {
-    const { rows } = await db.query("SELECT * FROM games");
+    const { rows } = await db.query(query, values);
     return res.status(200).send(rows);
   } catch (error) {
     console.log(error.message);

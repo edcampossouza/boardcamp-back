@@ -4,7 +4,6 @@ export function validateSchema(schema) {
       abortEarly: false,
       convert: true,
     });
-    console.log(value)
     if (error) {
       const message = error.details.map((err) => err.message);
       return res.status(400).send(message);
