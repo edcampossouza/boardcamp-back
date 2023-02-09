@@ -10,8 +10,8 @@ export async function getGames(req, res) {
     : "SELECT * FROM games";
   const values = name ? [`${name}%`] : [];
   if (name) queryIndex++;
-  if (["name", "id", "image"].includes(order)) {
-    query += ` ORDER BY ${order} `;
+  if (["name", "id", "image", "stockTotal", "pricePerDay"].includes(order)) {
+    query += ` ORDER BY "${order}" `;
     if (desc === "true") {
       query += " DESC ";
     }
