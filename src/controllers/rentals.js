@@ -1,13 +1,30 @@
 import { db } from "../config/database.js";
 
-export async function getRentals(_, res) {
+export async function getRentals(req, res) {
+  const { customerId, gameId } = req.query;
+  let filter = "";
+  let values = [];
+  if (customerId || gameId) {
+    filter += " WHERE ";
+    if (customerId) {
+      values.push(parseInt(customerId));
+      filter += ` "customerId" =  $${values.length}`;
+    }
+    if (gameId) {
+      values.push(parseInt(gameId));
+      if (customerId) filter += " AND ";
+      filter += ` "gameId" =  $${values.length} `;
+    }
+  }
+  const query =
+    `
+  SELECT rentals.id, "customerId", "gameId", "rentDate", "daysRented", "returnDate",
+  "originalPrice", "delayFee", games.name as "gameName", customers.name as "customerName"
+  FROM rentals join customers on customers.id = rentals."customerId"
+  join games on games.id = rentals."gameId"
+  ` + filter;
   try {
-    const rentals = await db.query(`
-    SELECT rentals.id, "customerId", "gameId", "rentDate", "daysRented", "returnDate",
-    "originalPrice", "delayFee", games.name as "gameName", customers.name as "customerName"
-    FROM rentals join customers on customers.id = rentals."customerId"
-    join games on games.id = rentals."gameId"
-    `);
+    const rentals = await db.query(query, values);
     rentals.rows.forEach((r) => {
       const rental = r;
       rental.customer = {
