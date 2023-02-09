@@ -3,12 +3,19 @@ import { db } from "../config/database.js";
 export async function getGames(req, res) {
   const { name } = req.query;
   const { offset, limit } = req.query;
+  const { order, desc } = req.query;
   let queryIndex = 1;
   let query = name
     ? "SELECT * FROM games where LOWER(name) like LOWER($1)"
     : "SELECT * FROM games";
   const values = name ? [`${name}%`] : [];
   if (name) queryIndex++;
+  if (["name", "id"].includes(order)) {
+    query += ` ORDER BY ${order} `;
+    if (desc === "true") {
+      query += " DESC ";
+    }
+  }
   if (offset) {
     query += ` OFFSET $${queryIndex++} `;
     values.push(offset);
