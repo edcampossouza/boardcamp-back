@@ -41,7 +41,17 @@ export async function getRentals(req, res) {
   FROM rentals join customers on customers.id = rentals."customerId"
   join games on games.id = rentals."gameId"
   ` + filter;
-  if (["customerId", "gameId", "id"].includes(order)) {
+  if (
+    [
+      "customerId",
+      "gameId",
+      "id",
+      "daysRented",
+      "originalPrice",
+      "returnDate",
+      "delayFee",
+    ].includes(order)
+  ) {
     query += ` ORDER BY "${order}" `;
     if (desc === "true") {
       query += " DESC ";
