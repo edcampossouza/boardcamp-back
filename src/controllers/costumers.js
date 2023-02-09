@@ -3,12 +3,19 @@ import { db } from "../config/database.js";
 export async function getCustomer(req, res) {
   const { cpf } = req.query;
   const { offset, limit } = req.query;
+  const { order, desc } = req.query;
   let queryIndex = 1;
   let query = cpf
     ? "SELECT * FROM customers WHERE cpf like $1"
     : "SELECT * FROM customers";
   const values = cpf ? [`${cpf}%`] : [];
   if (cpf) queryIndex++;
+  if (["name", "id", "cpf"].includes(order)) {
+    query += ` ORDER BY ${order} `;
+    if (desc === "true") {
+      query += " DESC ";
+    }
+  }
   if (offset) {
     query += ` OFFSET $${queryIndex++} `;
     values.push(offset);
