@@ -3,6 +3,7 @@ import { db } from "../config/database.js";
 export async function getRentals(req, res) {
   const { customerId, gameId } = req.query;
   const { offset, limit } = req.query;
+  const { order, desc } = req.query;
   let filter = "";
   let values = [];
   if (customerId || gameId) {
@@ -24,6 +25,12 @@ export async function getRentals(req, res) {
   FROM rentals join customers on customers.id = rentals."customerId"
   join games on games.id = rentals."gameId"
   ` + filter;
+  if (["customerId", "gameId", "id"].includes(order)) {
+    query += ` ORDER BY "${order}" `;
+    if (desc === "true") {
+      query += " DESC ";
+    }
+  }
   if (offset) {
     values.push(offset);
     query += ` OFFSET $${values.length} `;
