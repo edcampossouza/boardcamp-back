@@ -4,9 +4,12 @@ export async function getRentals(req, res) {
   const { customerId, gameId } = req.query;
   const { offset, limit } = req.query;
   const { order, desc } = req.query;
+  const { status, startDate } = req.query;
   let filter = "";
   let values = [];
+  let whereClause = false;
   if (customerId || gameId) {
+    whereClause = true;
     filter += " WHERE ";
     if (customerId) {
       values.push(parseInt(customerId));
@@ -17,6 +20,19 @@ export async function getRentals(req, res) {
       if (customerId) filter += " AND ";
       filter += ` "gameId" =  $${values.length} `;
     }
+  }
+  if (["open", "closed"].includes(status)) {
+    const prefix = whereClause ? " AND " : " WHERE ";
+    const predicate = ` "returnDate" IS ${
+      status === "open" ? " " : " NOT "
+    } NULL `;
+    whereClause = true;
+    filter += prefix + predicate;
+  }
+  if (startDate && startDate.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
+    const prefix = whereClause ? " AND " : " WHERE ";
+    const predicate = `  "rentDate" >= '${startDate}' `;
+    filter += prefix + predicate;
   }
   let query =
     `
