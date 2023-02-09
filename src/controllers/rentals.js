@@ -2,6 +2,7 @@ import { db } from "../config/database.js";
 
 export async function getRentals(req, res) {
   const { customerId, gameId } = req.query;
+  const { offset, limit } = req.query;
   let filter = "";
   let values = [];
   if (customerId || gameId) {
@@ -16,13 +17,21 @@ export async function getRentals(req, res) {
       filter += ` "gameId" =  $${values.length} `;
     }
   }
-  const query =
+  let query =
     `
   SELECT rentals.id, "customerId", "gameId", "rentDate", "daysRented", "returnDate",
   "originalPrice", "delayFee", games.name as "gameName", customers.name as "customerName"
   FROM rentals join customers on customers.id = rentals."customerId"
   join games on games.id = rentals."gameId"
   ` + filter;
+  if (offset) {
+    values.push(offset);
+    query += ` OFFSET $${values.length} `;
+  }
+  if (limit) {
+    values.push(limit);
+    query += ` LIMIT $${values.length} `;
+  }
   try {
     const rentals = await db.query(query, values);
     rentals.rows.forEach((r) => {
